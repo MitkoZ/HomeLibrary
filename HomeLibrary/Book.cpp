@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "Book.h"
-#include <string>
 using namespace std;
 
 Book::~Book()

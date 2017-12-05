@@ -3,7 +3,6 @@
 #include "BookManagementEnum.h"
 #include <iostream>
 #include <string>
-#include "Book.h"
 #include "BookRepository.h"
 #include <vector>
 #include <algorithm>
@@ -63,8 +62,19 @@ BookManagementEnum BookView::RenderMenu()
 		cout << "[5]. Sort By Author" << endl;
 		cout << "[6]. Sort By Year of Release" << endl;
 		cout << "[7]. Exit" << endl;
+		string choiceString;
+		getline(cin, choiceString);
 		int choice;
-		cin >> choice;
+		try
+		{
+			choice = stoi(choiceString);
+		}
+		catch (const std::invalid_argument&)
+		{
+			cout << "Please enter a number" << endl;
+			system("pause");
+			continue;
+		}
 		switch (choice)
 		{
 		case 1:
@@ -96,7 +106,7 @@ BookManagementEnum BookView::RenderMenu()
 			return Exit;
 		}
 		default:
-			cout << "Invalid choice! Please try again";
+			cout << "Invalid choice! Please try again" << endl;
 			system("pause");
 			break;
 		}
@@ -108,7 +118,6 @@ void BookView::Add()
 	system("cls");
 	string bookName;
 	cout << "Enter Book Name:" << endl;
-	cin.ignore();
 	getline(cin, bookName);
 	if (bookName == "")
 	{
@@ -126,7 +135,7 @@ void BookView::Add()
 		return;
 	}
 	string genre;
-	cout << "Enter Book Genre" << endl;
+	cout << "Enter Book Genre:" << endl;
 	getline(cin, genre);
 	if (genre == "")
 	{
@@ -134,16 +143,27 @@ void BookView::Add()
 		system("pause");
 		return;
 	}
-	string releaseDate;
-	cout << "Enter Book Release Date" << endl;
-	cin >> releaseDate;
-	if (releaseDate == "")
+	string releaseDateString;
+	cout << "Enter Book Release Date:" << endl;
+	getline(cin, releaseDateString);
+	if (releaseDateString == "")
 	{
 		cout << "Invalid release date!" << endl;
 		system("pause");
 		return;
 	}
-	Book* bookInput = new Book(bookName, author, genre, stoi(releaseDate));
+	int releaseDate;
+	try
+	{
+		releaseDate = stoi(releaseDateString);
+	}
+	catch (const std::invalid_argument&)
+	{
+		cout << "Invalid release date!" << endl;
+		system("pause");
+		return;
+	}
+	Book* bookInput = new Book(bookName, author, genre, releaseDate);
 	BookRepository* bookRepo = new BookRepository("books.txt");
 	bookRepo->Insert(bookInput);
 	delete bookInput;
@@ -157,12 +177,25 @@ void BookView::Remove()
 	system("cls");
 	cout << "Delete a book:" << endl;
 	cout << "Book Id:";
-	int idInput;
-	cin >> idInput;
+	int id;
+	string idString;
+	getline(cin, idString);
+	try
+	{
+		id = stoi(idString);
+	}
+	catch (const std::invalid_argument&)
+	{
+		cout << "Please enter a number!" << endl;
+		system("pause");
+		return;
+	}
 	BookRepository* bookRepo = new BookRepository("books.txt");
-	Book* bookDb = bookRepo->GetById(idInput);
+	Book* bookDb = bookRepo->GetById(id);
 	if (bookDb == nullptr)
 	{
+		delete bookRepo;
+		delete bookDb;
 		cout << "Book not found!";
 		system("pause");
 		return;
@@ -170,7 +203,9 @@ void BookView::Remove()
 	else
 	{
 		bookRepo->Remove(bookDb);
-		cout << "Book deleted successfully!";
+		delete bookRepo;
+		delete bookDb;
+		cout << "Book deleted successfully!" << endl;
 		system("pause");
 		return;
 	}
@@ -182,7 +217,18 @@ void BookView::SearchById()
 	cout << "Search book by id:" << endl;
 	cout << "Enter Book Id:" << endl;
 	int id;
-	cin >> id;
+	string idString;
+	getline(cin, idString);
+	try
+	{
+		id = stoi(idString);
+	}
+	catch (const std::invalid_argument&)
+	{
+		cout << "Please enter a number!" << endl;
+		system("pause");
+		return;
+	}
 	BookRepository* bookRepo = new BookRepository("books.txt");
 	Book* book = bookRepo->GetById(id);
 	if (book == nullptr)
@@ -215,7 +261,13 @@ void BookView::SearchByName()
 	cout << "Search book by name:" << endl;
 	cout << "Enter book name:" << endl;
 	string name;
-	cin >> name;
+	getline(cin, name);
+	if (name == "")
+	{
+		cout << "Invalid book name" << endl;
+		system("pause");
+		return;
+	}
 	BookRepository* bookRepo = new BookRepository("books.txt");
 	Book* book = bookRepo->GetByName(name);
 	if (book == nullptr)
@@ -240,6 +292,7 @@ void BookView::SortByAuthorName()
 	vector<Book> bookVectorDb = bookRepo->GetAll();
 	if (bookVectorDb.empty())
 	{
+		delete bookRepo;
 		cout << "You don't have any books!" << endl;
 		system("pause");
 		return;
@@ -264,6 +317,7 @@ void BookView::SortByYear()
 	vector<Book> bookVectorDb = bookRepo->GetAll();
 	if (bookVectorDb.empty())
 	{
+		delete bookRepo;
 		cout << "You don't have any books!" << endl;
 		system("pause");
 		return;

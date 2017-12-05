@@ -1,11 +1,5 @@
 #include "stdafx.h"
 #include "BookRepository.h"
-#include <fstream>
-#include <iostream>
-#include <string>
-#include <stdio.h>
-#include <vector>
-
 using namespace std;
 
 BookRepository::BookRepository(std::string filePath) :filePath(filePath)
@@ -67,8 +61,8 @@ void BookRepository::Remove(Book* book)
 	inputFileStream.open(filePath, ios::in);
 	while (!inputFileStream.eof())
 	{
-		Book* itemSrc = new Book();
-		bool endOfStream = PopulateEntity(itemSrc, &inputFileStream) == 1;
+		Book* bookDb = new Book();
+		bool endOfStream = PopulateEntity(bookDb, &inputFileStream) == 1;
 		if (endOfStream)
 		{
 			inputFileStream.close();
@@ -77,10 +71,10 @@ void BookRepository::Remove(Book* book)
 			rename(("temp." + filePath).c_str(), filePath.c_str());
 			break;
 		}
-		if (itemSrc->Id != book->Id)
+		if (bookDb->Id != book->Id)
 		{
-			WriteEntity(itemSrc, &tempOutputFileStream);
-			delete itemSrc;
+			WriteEntity(bookDb, &tempOutputFileStream);
+			delete bookDb;
 		}
 	}
 }
@@ -89,15 +83,17 @@ Book * BookRepository::GetById(int id)
 {
 	ifstream inputFileStream;
 	inputFileStream.open(filePath, ios::in);
-	while (!inputFileStream.eof())
+	while (!inputFileStream.eof() && inputFileStream.good())
 	{
 		Book* book = new Book();
 		PopulateEntity(book, &inputFileStream);
 		if (book->Id == id)
 		{
+			inputFileStream.close();
 			return book;
 		}
 	}
+	inputFileStream.close();
 	return nullptr;
 }
 
@@ -105,15 +101,17 @@ Book * BookRepository::GetByName(string name)
 {
 	ifstream inputFileStream;
 	inputFileStream.open(filePath, ios::in);
-	while (!inputFileStream.eof())
+	while (!inputFileStream.eof() && inputFileStream.good())
 	{
 		Book* book = new Book();
 		PopulateEntity(book, &inputFileStream);
 		if (book->Name == name)
 		{
+			inputFileStream.close();
 			return book;
 		}
 	}
+	inputFileStream.close();
 	return nullptr;
 }
 
@@ -133,6 +131,7 @@ int BookRepository::GetNextId()
 		}
 		delete book;
 	}
+	inputFileStream.close();
 	return id;
 }
 
